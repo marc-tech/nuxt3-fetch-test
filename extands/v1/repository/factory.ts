@@ -5,7 +5,7 @@ class FetchFactory {
 
     private $fetch: $Fetch;
 
-    constructor(fetchOptions: FetchOptions<'json'>) {
+    constructor(fetchOptions?: FetchOptions<'json'>) {
         const baseURL = "https://fakestoreapi.com/";
 
         this.$fetch = $fetch.create({
@@ -19,7 +19,7 @@ class FetchFactory {
     };
 
 
-    async call(url: string, options: any): Promise<any> {
+    async call(url: string, options?: any): Promise<any> {
         return this.$fetch(url, { method: 'GET', ...options });
     }
 }

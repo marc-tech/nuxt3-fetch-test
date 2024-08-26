@@ -14,7 +14,7 @@ export interface Product {
     }
 }
 
-class ProductsRepository extends FetchFactory {
+export default class ProductsRepository extends FetchFactory {
     private RESOURCE = '/products';
 
     async getProducts(): Promise<Product[]> {
@@ -22,3 +22,4 @@ class ProductsRepository extends FetchFactory {
         return res
     }
 }
+
