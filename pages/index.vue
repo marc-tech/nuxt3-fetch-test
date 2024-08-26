@@ -1,0 +1,4 @@
+<template>
+    <h1>Home Page</h1>
+    <NuxtLink to="/v1">v1</NuxtLink>
+</template>
