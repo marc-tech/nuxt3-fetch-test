@@ -5,5 +5,6 @@ export default defineNuxtConfig({
     extends: [
         './extands/v1',
         './extands/Benjamin',
+        './extands/no-repo',
     ]
 })
