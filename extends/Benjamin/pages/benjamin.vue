@@ -7,7 +7,7 @@
                 Sort ASC
             </nuxt-link>
         </li>
-
+        
         <li>
             <nuxt-link to="?sort=desc">
                 Sort DESC
@@ -15,13 +15,15 @@
         </li>
     </ul>
 
-    <figure 
-        v-for="product in products"
-        :key="product.id">
-        <legend>{{ product.title }}</legend>
-
-        <img :src="product.image">
-    </figure>
+    <section>
+        <figure 
+            v-for="product in products"
+            :key="product.id">
+            <legend>{{ product.title }}</legend>
+    
+            <img :src="product.image">
+        </figure>
+    </section>
 
 
     <!-- <div style="white-space: pre-line;">
@@ -31,22 +33,67 @@
 
 <script lang="ts" setup>
 const sort = computed(() => useRoute().query.sort);
-const productsApi = useProductsApi();
+const productsRepo = useRepository().products();
 
 const { data: products } = await useAsyncData(() => {
-    console.log('😅', process.server); // ssr: dans le terminal // navigation: dans la console du navigateur 
-    return productsApi.getProducts({ sort: sort.value });
+    // ssr: dans le terminal 
+    // navigation: dans la console du navigateur 
+    console.log('😅', import.meta.server);
+    
+    return productsRepo.getProducts({ sort: sort.value });
+    // return productsRepo.getProductsSecurely({ sort: sort.value });
 }, { watch: [sort] });
 
-console.log('🤕', products.value?.length , process.server); // ssr: dans le terminal et dans la console du navigateur // navigation: dans la console du navigateur
+// ssr: dans le terminal et dans la console du navigateur 
+// navigation: dans la console du navigateur
+console.log('🤕', products.value?.length , import.meta.server); 
 </script>
 
 <style scoped>
+    ul {
+        display: flex;
+        list-style: none;
+        gap: 1rem;
+    }
+
+    ul li {
+        flex: 1;
+        text-align: center;
+    }
+
+    ul li a {
+        display: block;
+        padding: 2rem;
+        background-color: aquamarine;
+        color: teal;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 2rem;
+        font-weight: bolder;
+        text-decoration: none;
+    }
+
+    ul li a:hover {
+        background-color: darkolivegreen;
+        color: lawngreen;
+    }
+
+    section {
+        --nb-col: 1;
+
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(var(--nb-col), 1fr);
+    }
+    
+    @media(min-width: 720px) { section { --nb-col: 2; } }
+
+    @media(min-width: 1200px) { section { --nb-col: 3; } }
+
     figure {
         display: block;
-        margin-block: 3rem;
+        margin: 0;
         padding: 2rem;
-        border: .5rem dashed darkcyan;
+        border: .15rem dashed darkcyan;
         font-family: sans-serif;
     }
 
