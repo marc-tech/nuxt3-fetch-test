@@ -19,6 +19,8 @@ const limit = ref(parseInt(useRoute().query.limit as string) || 3)
 
 const { data } = await useAsyncData(() => {
     useRouter().push({ query: { limit: limit.value } })
-    return productRepo.getProducts(limit.value)
-}, { watch: [limit] })
+    return productRepo.getProducts({ limit: limit.value })
+}, {
+    watch: [limit]
+})
 </script>

@@ -1,3 +1,4 @@
+import type { FetchOptions } from 'ofetch';
 export interface Product {
     id: number,
     title: string,
@@ -15,8 +16,8 @@ export default function useRepositoryProduct() {
     const { $fakeApiClient } = useNuxtApp();
 
     return {
-        async getProducts(limit?: number): Promise<Product[]> {
-            return await $fakeApiClient.getProducts(limit)
+        async getProducts(query?: FetchOptions['query']): Promise<Product[]> {
+            return await $fakeApiClient.getProducts(query)
         }
     }
 }

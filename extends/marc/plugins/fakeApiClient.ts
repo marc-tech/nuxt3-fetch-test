@@ -51,13 +51,13 @@ export default defineNuxtPlugin(() => {
                 // ========================
                 // Products
                 // ========================
-                getProducts: (limit?: number) => get('/products', { query: { limit } }),
+                getProducts: (query?: FetchOptions['query']) => get('/products', { query }),
                 updateProduct: (id: number, payload: any) => put(`/products/${id}`, { body: payload }),
                 deleteProduct: (id: number) => remove(`/products/${id}`),
                 // ========================
                 // Carts
                 // ========================
-                getCarts: (limit: number) => get('/carts', { query: { limit } }),
+                getCarts: (query?: FetchOptions['query']) => get('/carts', { query }),
                 updateCart: (id: number, payload: any) => put(`/carts/${id}`, { body: payload }),
                 deleteCart: (id: number) => remove(`/carts/${id}`),
                 // ========================
