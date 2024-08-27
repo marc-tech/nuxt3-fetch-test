@@ -1,72 +1,87 @@
-import type { $Fetch, FetchOptions } from 'ofetch';
-import { $fetch } from 'ofetch';
+import { ofetch } from 'ofetch';
+import type { FetchOptions } from 'ofetch';
 
-export default defineNuxtPlugin(() => {
-    // ==========================
-    // Base API URL
-    // ==========================
-    const baseURL = "https://fakestoreapi.com/";
+export class FakeApiClient {
+    constructor(private baseURL: string) { }
 
-    // ==========================
-    // Base instance of $fetch
-    // ==========================
-    // const xsrfToken = useCookie('XSRF-TOKEN');
-    const fakeApiFetcher: $Fetch = $fetch.create({
-        baseURL,
-        headers: {
-            Accept: 'application/json',
-            // ...(process.server ? useRequestHeaders(['cookie']) : {}),
-            // ...(xsrfToken.value ? {'X-XSRF-TOKEN': xsrfToken.value} : {}),
+    fetch(url: string, options?: FetchOptions): Promise<any> {
+        return ofetch(url, {
+            baseURL: this.baseURL,
+            headers: {
+                Accept: 'application/json',
+                // ...(process.server ? useRequestHeaders(['cookie']) : {}),
+                // ...(xsrfToken.value ? {'X-XSRF-TOKEN': xsrfToken.value} : {}),
 
-        },
-        // onResponseError({ response }) {
-        //     if (response.status === 401) {
-        //         navigateTo('/mon-compte/login');
-        //     }
-        // },
-    });
+            },
+            // onResponseError({ response }) {
+            //     if (response.status === 401) {
+            //         navigateTo('/mon-compte/login');
+            //     }
+            // },
+            ...options
+        });
+    }
 
     // ==========================
     // HTTP Methods Utils 
     // ==========================
-    function get(url: string, options?: FetchOptions) {
-        return fakeApiFetcher(url, { method: 'GET', ...options });
+    get(url: string, options?: FetchOptions): Promise<any> {
+        return this.fetch(url, { method: 'GET', ...options });
     }
-    function post(url: string, options?: FetchOptions) {
-        return fakeApiFetcher(url, { method: 'POST', ...options });
+    post(url: string, options?: FetchOptions): Promise<any> {
+        return this.fetch(url, { method: 'POST', ...options });
     }
-    function put(url: string, options?: FetchOptions) {
-        return fakeApiFetcher(url, { method: 'PUT', ...options });
+    put(url: string, options?: FetchOptions): Promise<any> {
+        return this.fetch(url, { method: 'PUT', ...options });
     }
-    function remove(url: string, options?: FetchOptions) {
-        return fakeApiFetcher(url, { method: 'DELETE', ...options });
+    remove(url: string, options?: FetchOptions): Promise<any> {
+        return this.fetch(url, { method: 'DELETE', ...options });
     }
 
-    // ==========================
-    // Provide the fakeApiClient
-    // ==========================
+    // ========================
+    // Products
+    // ========================
+    getProducts(query?: FetchOptions['query']) {
+        return this.get('/products', { query });
+    }
+    updateProduct(id: number, payload: any) {
+        return this.put(`/products/${id}`, { body: payload });
+    }
+    deleteProduct(id: number) {
+        return this.remove(`/products/${id}`);
+    }
+    // ========================
+    // Carts
+    // ========================
+    getCarts(query?: FetchOptions['query']) {
+        return this.get('/carts', { query });
+    }
+    updateCart(id: number, payload: any) {
+        return this.put(`/carts/${id}`, { body: payload });
+    }
+    deleteCart(id: number) {
+        return this.remove(`/carts/${id}`);
+    }
+    // ========================
+    // User
+    // ========================
+    addUser(payload: any) {
+        return this.post('/users', { body: payload });
+    }
+    updateUser(id: number, payload: any) {
+        return this.put(`/users/${id}`, { body: payload });
+    }
+    deleteUser(id: number) {
+        return this.remove(`/users/${id}`);
+    }
+}
+
+export default defineNuxtPlugin(() => {
+    const baseURL = "https://fakestoreapi.com/";
+
     return {
         provide: {
-            fakeApiClient: {
-                // ========================
-                // Products
-                // ========================
-                getProducts: (query?: FetchOptions['query']) => get('/products', { query }),
-                updateProduct: (id: number, payload: any) => put(`/products/${id}`, { body: payload }),
-                deleteProduct: (id: number) => remove(`/products/${id}`),
-                // ========================
-                // Carts
-                // ========================
-                getCarts: (query?: FetchOptions['query']) => get('/carts', { query }),
-                updateCart: (id: number, payload: any) => put(`/carts/${id}`, { body: payload }),
-                deleteCart: (id: number) => remove(`/carts/${id}`),
-                // ========================
-                // User
-                // ========================
-                addUser: (payload: any) => post('/users', { body: payload }),
-                updateUser: (id: number, payload: any) => put(`/users/${id}`, { body: payload }),
-                deleteUser: (id: number) => remove(`/users/${id}`),
-            },
+            fakeApiClient: new FakeApiClient(baseURL),
         },
     }
 });
