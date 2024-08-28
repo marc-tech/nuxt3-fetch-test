@@ -3,7 +3,7 @@ import { $fetch } from 'ofetch';
 
 export type RepositoryOptions = FetchOptions<'json'>;
 
-export default abstract class AbstractRepository {
+export default abstract class AbstractRepository<ApiItem, Item> {
     private $fetch: $Fetch;
 
     constructor(fetchOptions?: RepositoryOptions) {
@@ -43,15 +43,18 @@ export default abstract class AbstractRepository {
     //     });
     // }
 
-    async call(url: string, options?: RepositoryOptions): Promise<any> {
+    async call(url: string, options?: RepositoryOptions): Promise<ApiItem[]> {
         return this.$fetch(url, { method: 'GET', ...options, });
     }
 
-    async callSecure(url: string, options?: RepositoryOptions): Promise<any> {
+    async callSecure(url: string, options?: RepositoryOptions): Promise<ApiItem[]> {
         return this.$fetch(url, {
             method:'GET',
             ...this.getSecureOptions(),
             ...options,
         })
     }
+
+    abstract formatFromApi(item: ApiItem): Item;
+    abstract formatToApi(item: Item): Partial<ApiItem>;
 }
