@@ -3,14 +3,21 @@ import { $fetch } from 'ofetch';
 
 export type RepositoryOptions = FetchOptions<'json'>;
 
-export default abstract class AbstractRepository<ApiItem, Item> {
-    private $fetch: $Fetch;
+export type RepositoryUtils = {
+    getHeaders: () => Record<string, string>,
+    getXsrfCookie: () => string | null | undefined
+}
 
-    constructor(fetchOptions?: RepositoryOptions) {
-        const baseURL = "https://fakestoreapi.com/";
+export default abstract class AbstractRepository<ApiItem/*, Item*/> {
+    private static readonly BASE_URL = "https://fakestoreapi.com/";
+    private $fetch: $Fetch;
+    private utils: RepositoryUtils;
+
+    constructor(repositoryUtils: RepositoryUtils, fetchOptions?: RepositoryOptions) {
+        this.utils = repositoryUtils;
 
         this.$fetch = $fetch.create({
-            baseURL,
+            baseURL: AbstractRepository.BASE_URL,
             headers: {
                 Accept: 'application/json',
                 ...fetchOptions?.headers,
@@ -20,41 +27,48 @@ export default abstract class AbstractRepository<ApiItem, Item> {
     };
 
     // Je le refais à chaque fois car les cookies et autres peuvent évoluer indépendament du cycle de vie de cet objet (ex: avant/après connexion)
-    private getSecureOptions(): RepositoryOptions {
+    private setSecureOptions(options?: RepositoryOptions): RepositoryOptions {
         // 🚨 des composables en dehors de nuxt ???
-        const headers: Record<string, string> = import.meta.server ? { ...useRequestHeaders(['cookie']) } : {};
+        const headers = this.utils.getHeaders();
 
-        const xsrfToken = useCookie('XSRF-TOKEN');
-        if (xsrfToken?.value) headers['X-XSRF-TOKEN'] = xsrfToken.value;
+        const xsrfToken = this.utils.getXsrfCookie();
+        if (xsrfToken) headers['X-XSRF-TOKEN'] = xsrfToken;
 
         return {
+            ...options,
+            headers: {
+                ...options?.headers,
+                ...headers,
+            },
             credentials: 'include',
-            headers,
             // onRequestError... // pas sûr que ça soit l'endroit où faire ça ... je vois ça plutôt dans les try/catch et les routerMiddlewares ...
         }
     }
 
     // @Todo: j'hésite ... soit call + callSecure, soit call avec une option `secure?: boolean`.
-    // async call(url: string, options?: RepositoryOptions, secure?: boolean): Promise<any> {
-    //     return this.$fetch(url, { 
-    //         method: 'GET', 
-    //         ...(secure ? this.getSecureOptions() : null), 
-    //         ...options,
-    //     });
+    async call<FetchResponse = ApiItem>(url: string, options?: RepositoryOptions, secure: boolean = false): Promise<FetchResponse> {
+        
+        if (secure) options = this.setSecureOptions(options);
+
+        return this.$fetch(url, {
+            method: 'GET',
+            ...options,
+        });
+    }
+
+    // async call<T = ApiItem>(url: string, options?: RepositoryOptions): Promise<T> {
+    //     return this.$fetch(url, { method: 'GET', ...options, });
     // }
 
-    async call(url: string, options?: RepositoryOptions): Promise<ApiItem[]> {
-        return this.$fetch(url, { method: 'GET', ...options, });
-    }
+    // async callSecure<T = ApiItem>(url: string, options?: RepositoryOptions): Promise<T> {
+    //     return this.$fetch(url, {
+    //         method:'GET',
+    //         ...this.getSecureOptions(),
+    //         ...options,
+    //     })
+    // }
 
-    async callSecure(url: string, options?: RepositoryOptions): Promise<ApiItem[]> {
-        return this.$fetch(url, {
-            method:'GET',
-            ...this.getSecureOptions(),
-            ...options,
-        })
-    }
-
-    abstract formatFromApi(item: ApiItem): Item;
-    abstract formatToApi(item: Item): Partial<ApiItem>;
+    // ne pas les rendre obligatoires ... ça n'a pas de sens !
+    // abstract formatFromApi(item: ApiItem): Item;
+    // abstract formatToApi(item: Item): Partial<ApiItem>;
 }
